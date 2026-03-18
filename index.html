@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>轻盈计划 - 你的减肥小助手</title>
+  <link rel="stylesheet" href="https://fastly.jsdelivr.net/npm/vant@4/lib/index.css">
+  <script src="https://fastly.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://fastly.jsdelivr.net/npm/vant@4/lib/vant.min.js"></script>
+  <script src="https://fastly.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <style>
+    :root {
+      --primary: #FF6B9D;
+      --primary-light: #FFB8D0;
+      --secondary: #7CE0D3;
+      --bg: #FFF5F8;
+      --bg-card: #FFFFFF;
+      --text: #333333;
+      --text-light: #999999;
+      --accent: #FF9F43;
+      --success: #4CD964;
+      --danger: #FF3B30;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    #app {
+      max-width: 450px;
+      margin: 0 auto;
+      min-height: 100vh;
+      background: var(--bg);
+      position: relative;
+      padding-bottom: 60px;
+    }
+
+    /* ===== 首页样式 ===== */
+    .home-header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      padding: 30px 20px 40px;
+      border-radius: 0 0 30px 30px;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+    .home-header::after {
+      content: '';
+      position: absolute;
+      bottom: -20px;
+      right: -20px;
+      width: 120px;
+      height: 120px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 50%;
+    }
+    .home-greeting {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    .home-subtitle {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    .home-stats {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .home-stat-item {
+      flex: 1;
+      background: rgba(255,255,255,0.2);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+    }
+    .home-stat-value {
+      font-size: 22px;
+      font-weight: 700;
+    }
+    .home-stat-label {
+      font-size: 11px;
+      opacity: 0.9;
+      margin-top: 2px;
+    }
+
+    /* ===== 进度卡片 ===== */
+    .progress-card {
+      background: white;
+      margin: -20px 16px 16px;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(255,107,157,0.1);
+      position: relative;
+      z-index: 1;
+    }
+    .progress-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .progress-bar-bg {
+      height: 12px;
+      background: #F5F5F5;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      border-radius: 6px;
+      transition: width 0.6s ease;
+    }
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-light);
+    }
+
+    /* ===== 功能卡片 ===== */
+    .section-card {
+      background: white;
+      margin: 12px 16px;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    }
+    .section-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ===== 今日记录格子 ===== */
+    .today-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .today-item {
+      text-align: center;
+      background: var(--bg);
+      border-radius: 12px;
+      padding: 14px 8px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .today-item:active {
+      transform: scale(0.95);
+    }
+    .today-icon {
+      font-size: 28px;
+      margin-bottom: 6px;
+    }
+    .today-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .today-label {
+      font-size: 11px;
+      color: var(--text-light);
+      margin-top: 2px;
+    }
+
+    /* ===== 图表 ===== */
+    .chart-container {
+      width: 100%;
+      height: 200px;
+    }
+
+    /* ===== 钻石和打卡 ===== */
+    .reward-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .reward-item {
+      text-align: center;
+      background: linear-gradient(135deg, #FFF5F8, #FFE5EC);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .reward-value {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .reward-label {
+      font-size: 13px;
+      color: var(--text-light);
+      margin-top: 4px;
+    }
+
+    /* ===== 小贴士 ===== */
+    .tip-card {
+      background: linear-gradient(135deg, var(--secondary), #A8E6CF);
+      margin: 12px 16px;
+      border-radius: 16px;
+      padding: 16px;
+      color: white;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .tip-icon {
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+
+    /* ===== 记录页样式 ===== */
+    .record-tabs {
+      display: flex;
+      background: white;
+      padding: 8px;
+      margin: 12px 16px;
+      border-radius: 12px;
+      gap: 6px;
+    }
+    .record-tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+      border: none;
+      background: transparent;
+      color: var(--text-light);
+    }
+    .record-tab.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .weight-input-area {
+      text-align: center;
+      padding: 30px 20px;
+    }
+    .weight-display {
+      font-size: 60px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 5px;
+    }
+    .weight-unit {
+      font-size: 20px;
+      color: var(--text-light);
+    }
+    .weight-change {
+      font-size: 14px;
+      margin-top: 8px;
+    }
+    .weight-change.down { color: var(--success); }
+    .weight-change.up { color: var(--danger); }
+
+    .weight-slider {
+      padding: 0 20px;
+      margin-bottom: 20px;
+    }
+
+    .btn-record {
+      display: block;
+      width: calc(100% - 32px);
+      margin: 16px auto;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      color: white;
+      border: none;
+      border-radius: 25px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 15px rgba(255,107,157,0.3);
+    }
+    .btn-record:active {
+      transform: scale(0.97);
+    }
+
+    /* ===== 饮食记录 ===== */
+    .meal-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      padding: 10px 0;
+    }
+    .meal-card {
+      background: var(--bg);
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s;
+      border: 2px solid transparent;
+    }
+    .meal-card:active { transform: scale(0.95); }
+    .meal-card.has-data { border-color: var(--primary); background: #FFF0F5; }
+    .meal-icon { font-size: 32px; margin-bottom: 6px; }
+    .meal-name { font-size: 14px; font-weight: 600; }
+    .meal-cal { font-size: 12px; color: var(--text-light); margin-top: 4px; }
+
+    .calorie-summary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      background: linear-gradient(135deg, #FFF5F8, #FFE5EC);
+      border-radius: 12px;
+      margin-bottom: 10px;
+    }
+    .calorie-budget { font-size: 13px; color: var(--text-light); }
+    .calorie-value { font-size: 24px; font-weight: 700; color: var(--primary); }
+
+    /* ===== 运动记录 ===== */
+    .exercise-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .exercise-item {
+      text-align: center;
+      padding: 12px 4px;
+      border-radius: 12px;
+      background: var(--bg);
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 2px solid transparent;
+    }
+    .exercise-item.selected {
+      background: #FFF0F5;
+      border-color: var(--primary);
+    }
+    .exercise-icon { font-size: 24px; }
+    .exercise-name { font-size: 11px; margin-top: 4px; }
+
+    .duration-input {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 20px;
+    }
+    .duration-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid var(--primary);
+      background: white;
+      color: var(--primary);
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .duration-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--primary);
+      min-width: 80px;
+      text-align: center;
+    }
+    .duration-label {
+      font-size: 14px;
+      color: var(--text-light);
+    }
+    .calories-burned {
+      text-align: center;
+      font-size: 14px;
+      color: var(--accent);
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    /* ===== 体重历史列表 ===== */
+    .weight-history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #f5f5f5;
+    }
+    .weight-history-item:last-child { border-bottom: none; }
+    .wh-date { font-size: 13px; color: var(--text-light); }
+    .wh-value { font-size: 16px; font-weight: 600; }
+    .wh-change { font-size: 12px; }
+
+    /* ===== 发现页 ===== */
+    .discover-banner {
+      margin: 12px 16px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: linear-gradient(135deg, var(--primary), #FF9F43);
+      padding: 24px 20px;
+      color: white;
+    }
+    .discover-banner h3 { font-size: 18px; margin-bottom: 6px; }
+    .discover-banner p { font-size: 13px; opacity: 0.9; }
+
+    .article-card {
+      display: flex;
+      align-items: center;
+      padding: 14px 0;
+      border-bottom: 1px solid #f5f5f5;
+      cursor: pointer;
+    }
+    .article-card:last-child { border-bottom: none; }
+    .article-icon { font-size: 36px; margin-right: 12px; flex-shrink: 0; }
+    .article-title { font-size: 14px; font-weight: 500; }
+    .article-desc { font-size: 12px; color: var(--text-light); margin-top: 4px; }
+
+    /* ===== 我的页面 ===== */
+    .profile-header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      padding: 40px 20px 50px;
+      border-radius: 0 0 30px 30px;
+      color: white;
+      text-align: center;
+    }
+    .profile-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      margin: 0 auto 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+    }
+    .profile-name {
+      font-size: 20px;
+      font-weight: 600;
+    }
+    .profile-level {
+      font-size: 13px;
+      opacity: 0.9;
+      margin-top: 4px;
+    }
+
+    .profile-stats {
+      display: flex;
+      background: white;
+      margin: -25px 16px 16px;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(255,107,157,0.1);
+      position: relative;
+      z-index: 1;
+    }
+    .profile-stat {
+      flex: 1;
+      text-align: center;
+    }
+    .profile-stat-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .profile-stat-label {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-top: 2px;
+    }
+    .profile-stat + .profile-stat {
+      border-left: 1px solid #f5f5f5;
+    }
+
+    /* ===== 成就徽章 ===== */
+    .badge-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .badge-item {
+      text-align: center;
+      padding: 12px;
+      border-radius: 12px;
+      background: var(--bg);
+    }
+    .badge-item.locked {
+      opacity: 0.4;
+      filter: grayscale(1);
+    }
+    .badge-icon { font-size: 32px; }
+    .badge-name { font-size: 11px; margin-top: 4px; color: var(--text-light); }
+
+    /* ===== 设置菜单 ===== */
+    .menu-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 0;
+      border-bottom: 1px solid #f5f5f5;
+      cursor: pointer;
+    }
+    .menu-item:last-child { border-bottom: none; }
+    .menu-left { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+    .menu-arrow { color: #ccc; font-size: 14px; }
+
+    /* ===== 弹窗 ===== */
+    .popup-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .popup-content {
+      background: white;
+      width: 100%;
+      max-width: 450px;
+      border-radius: 20px 20px 0 0;
+      padding: 24px 20px 40px;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+    .popup-title {
+      font-size: 18px;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .popup-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--text-light);
+    }
+
+    /* ===== 食物列表 ===== */
+    .food-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #f5f5f5;
+      cursor: pointer;
+    }
+    .food-item:active { background: #f9f9f9; }
+    .food-name { font-size: 14px; }
+    .food-cal { font-size: 13px; color: var(--primary); font-weight: 600; }
+
+    /* ===== 打卡成功动画 ===== */
+    .checkin-success {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .checkin-card {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      text-align: center;
+      max-width: 300px;
+      animation: bounceIn 0.5s;
+    }
+    .checkin-icon { font-size: 60px; margin-bottom: 16px; }
+    .checkin-title { font-size: 20px; font-weight: 700; color: var(--primary); margin-bottom: 8px; }
+    .checkin-desc { font-size: 14px; color: var(--text-light); margin-bottom: 20px; }
+    .checkin-diamond { font-size: 16px; color: var(--accent); font-weight: 600; }
+
+    @keyframes bounceIn {
+      0% { transform: scale(0.3); opacity: 0; }
+      50% { transform: scale(1.05); }
+      70% { transform: scale(0.95); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* ===== 底部导航自定义 ===== */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 450px;
+      background: white;
+      display: flex;
+      padding: 8px 0 env(safe-area-inset-bottom, 8px);
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+      z-index: 50;
+    }
+    .nav-item {
+      flex: 1;
+      text-align: center;
+      padding: 6px 0;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      background: none;
+    }
+    .nav-icon { font-size: 22px; }
+    .nav-label { font-size: 10px; margin-top: 2px; color: var(--text-light); }
+    .nav-item.active .nav-icon { color: var(--primary); }
+    .nav-item.active .nav-label { color: var(--primary); font-weight: 600; }
+
+    /* ===== 通用 ===== */
+    .input-field {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #f0f0f0;
+      border-radius: 12px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+    .input-field:focus { border-color: var(--primary); }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-light);
+    }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <!-- ===== 首页 ===== -->
+  <div v-if="currentTab === 'home'">
+    <div class="home-header">
+      <div class="home-greeting">😊 你好，{{ user.name }}！</div>
+      <div class="home-subtitle">今天也要加油哦～</div>
+      <div class="home-stats">
+        <div class="home-stat-item">
+          <div class="home-stat-value">{{ user.currentWeight }}</div>
+          <div class="home-stat-label">当前体重(kg)</div>
+        </div>
+        <div class="home-stat-item">
+          <div class="home-stat-value">{{ bmi }}</div>
+          <div class="home-stat-label">BMI</div>
+        </div>
+        <div class="home-stat-item">
+          <div class="home-stat-value">{{ streak }}</div>
+          <div class="home-stat-label">连续打卡</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 目标进度 -->
+    <div class="progress-card">
+      <div class="progress-title">🎯 减肥进度</div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" :style="{ width: progress + '%' }"></div>
+      </div>
+      <div class="progress-info">
+        <span>起始 {{ user.startWeight }}kg</span>
+        <span>已减 {{ weightLoss }}kg ({{ progress }}%)</span>
+        <span>目标 {{ user.targetWeight }}kg</span>
+      </div>
+    </div>
+
+    <!-- 今日记录 -->
+    <div class="section-card">
+      <div class="section-title">📝 今日记录</div>
+      <div class="today-grid">
+        <div class="today-item" @click="currentTab='record'; recordTab='weight'">
+          <div class="today-icon">⚖️</div>
+          <div class="today-value">{{ todayWeight || '--' }}</div>
+          <div class="today-label">体重(kg)</div>
+        </div>
+        <div class="today-item" @click="currentTab='record'; recordTab='diet'">
+          <div class="today-icon">🍽️</div>
+          <div class="today-value">{{ todayCalories }}</div>
+          <div class="today-label">摄入(卡)</div>
+        </div>
+        <div class="today-item" @click="currentTab='record'; recordTab='exercise'">
+          <div class="today-icon">🏃‍♀️</div>
+          <div class="today-value">{{ todayExerciseCal }}</div>
+          <div class="today-label">消耗(卡)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 体重趋势图 -->
+    <div class="section-card">
+      <div class="section-title">📈 近7天体重趋势</div>
+      <div class="chart-container" ref="weightChart"></div>
+      <div v-if="weights.length === 0" class="empty-state">
+        <div class="empty-icon">📊</div>
+        <div>还没有数据哦，快去记录体重吧～</div>
+      </div>
+    </div>
+
+    <!-- 钻石和成就 -->
+    <div class="section-card">
+      <div class="section-title">🏆 我的成就</div>
+      <div class="reward-grid">
+        <div class="reward-item">
+          <div class="reward-value">{{ diamonds }} 💎</div>
+          <div class="reward-label">我的钻石</div>
+        </div>
+        <div class="reward-item">
+          <div class="reward-value">{{ streak }} 🔥</div>
+          <div class="reward-label">连续打卡</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 小贴士 -->
+    <div class="tip-card">
+      <div class="tip-icon">💡</div>
+      <div>{{ currentTip }}</div>
+    </div>
+  </div>
+
+  <!-- ===== 记录页 ===== -->
+  <div v-if="currentTab === 'record'">
+    <div class="home-header" style="padding: 20px 20px 30px;">
+      <div class="home-greeting">📝 记录</div>
+      <div class="home-subtitle">坚持记录，看到改变</div>
+    </div>
+
+    <div class="record-tabs">
+      <button class="record-tab" :class="{ active: recordTab === 'weight' }" @click="recordTab='weight'">⚖️ 体重</button>
+      <button class="record-tab" :class="{ active: recordTab === 'diet' }" @click="recordTab='diet'">🍎 饮食</button>
+      <button class="record-tab" :class="{ active: recordTab === 'exercise' }" @click="recordTab='exercise'">🏃 运动</button>
+    </div>
+
+    <!-- 体重记录 -->
+    <div v-if="recordTab === 'weight'">
+      <div class="section-card">
+        <div class="weight-input-area">
+          <div class="weight-display">{{ weightInput }}<span class="weight-unit"> kg</span></div>
+          <div class="weight-change" :class="weightDiff < 0 ? 'down' : 'up'" v-if="lastWeight">
+            较上次 {{ weightDiff > 0 ? '+' : '' }}{{ weightDiff.toFixed(1) }} kg
+          </div>
+        </div>
+        <div class="weight-slider">
+          <input type="range" :min="30" :max="120" step="0.1" v-model="weightInput" style="width:100%; accent-color: #FF6B9D;">
+        </div>
+        <input class="input-field" type="number" v-model="weightInput" placeholder="手动输入体重" step="0.1" style="margin-bottom: 12px;">
+        <button class="btn-record" @click="recordWeight">确认记录 +2💎</button>
+      </div>
+
+      <div class="section-card" v-if="weights.length > 0">
+        <div class="section-title">📋 历史记录</div>
+        <div v-for="(w, i) in recentWeights" :key="w.date" class="weight-history-item">
+          <div>
+            <div class="wh-date">{{ formatDate(w.date) }}</div>
+          </div>
+          <div style="text-align: right;">
+            <div class="wh-value">{{ w.weight }} kg</div>
+            <div class="wh-change" :style="{ color: getChangeColor(w, i) }">
+              {{ getChangeText(w, i) }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 饮食记录 -->
+    <div v-if="recordTab === 'diet'">
+      <div class="section-card">
+        <div class="calorie-summary">
+          <div>
+            <div class="calorie-budget">每日预算 {{ dailyBudget }} 卡</div>
+            <div style="font-size:12px; color: var(--text-light);">剩余 {{ dailyBudget - todayCalories }} 卡</div>
+          </div>
+          <div class="calorie-value">{{ todayCalories }} 卡</div>
+        </div>
+
+        <div class="meal-grid">
+          <div class="meal-card" :class="{ 'has-data': getMealCal('breakfast') > 0 }" @click="openMealPopup('breakfast')">
+            <div class="meal-icon">🌅</div>
+            <div class="meal-name">早餐</div>
+            <div class="meal-cal">{{ getMealCal('breakfast') || '点击添加' }}</div>
+          </div>
+          <div class="meal-card" :class="{ 'has-data': getMealCal('lunch') > 0 }" @click="openMealPopup('lunch')">
+            <div class="meal-icon">☀️</div>
+            <div class="meal-name">午餐</div>
+            <div class="meal-cal">{{ getMealCal('lunch') || '点击添加' }}</div>
+          </div>
+          <div class="meal-card" :class="{ 'has-data': getMealCal('dinner') > 0 }" @click="openMealPopup('dinner')">
+            <div class="meal-icon">🌙</div>
+            <div class="meal-name">晚餐</div>
+            <div class="meal-cal">{{ getMealCal('dinner') || '点击添加' }}</div>
+          </div>
+          <div class="meal-card" :class="{ 'has-data': getMealCal('snack') > 0 }" @click="openMealPopup('snack')">
+            <div class="meal-icon">🍰</div>
+            <div class="meal-name">加餐</div>
+            <div class="meal-cal">{{ getMealCal('snack') || '点击添加' }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 今日已记录食物 -->
+      <div class="section-card" v-if="todayFoods.length > 0">
+        <div class="section-title">📋 今日已记录</div>
+        <div v-for="food in todayFoods" :key="food.id" class="food-item">
+          <div>
+            <div class="food-name">{{ food.name }} ({{ food.meal === 'breakfast' ? '早餐' : food.meal === 'lunch' ? '午餐' : food.meal === 'dinner' ? '晚餐' : '加餐' }})</div>
+          </div>
+          <div class="food-cal">{{ food.calories }} 卡</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 运动记录 -->
+    <div v-if="recordTab === 'exercise'">
+      <div class="section-card">
+        <div class="section-title">🏃 选择运动类型</div>
+        <div class="exercise-grid">
+          <div v-for="ex in exerciseTypes" :key="ex.name"
+               class="exercise-item" :class="{ selected: selectedExercise === ex.name }"
+               @click="selectedExercise = ex.name">
+            <div class="exercise-icon">{{ ex.icon }}</div>
+            <div class="exercise-name">{{ ex.name }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card" v-if="selectedExercise">
+        <div class="section-title">⏱️ 运动时长</div>
+        <div class="duration-input">
+          <button class="duration-btn" @click="exerciseDuration = Math.max(5, exerciseDuration - 5)">-</button>
+          <div>
+            <div class="duration-value">{{ exerciseDuration }}</div>
+            <div class="duration-label">分钟</div>
+          </div>
+          <button class="duration-btn" @click="exerciseDuration += 5">+</button>
+        </div>
+        <div class="calories-burned">🔥 预计消耗 {{ estimatedCalories }} 卡</div>
+        <button class="btn-record" @click="recordExercise">确认记录 +3💎</button>
+      </div>
+
+      <!-- 今日运动记录 -->
+      <div class="section-card" v-if="todayExercises.length > 0">
+        <div class="section-title">📋 今日运动</div>
+        <div v-for="ex in todayExercises" :key="ex.id" class="weight-history-item">
+          <div>
+            <div style="font-size:14px">{{ ex.type }}</div>
+            <div class="wh-date">{{ ex.duration }}分钟</div>
+          </div>
+          <div class="food-cal">{{ ex.calories }} 卡</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 发现页 ===== -->
+  <div v-if="currentTab === 'discover'">
+    <div class="home-header" style="padding: 20px 20px 30px;">
+      <div class="home-greeting">🔍 发现</div>
+      <div class="home-subtitle">健康知识，助你轻松瘦</div>
+    </div>
+
+    <div class="discover-banner">
+      <h3>💪 21天挑战</h3>
+      <p>科学减肥，养成好习惯！点击开始你的蜕变之旅</p>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">🥗 健康食谱推荐</div>
+      <div v-for="recipe in recipes" :key="recipe.name" class="article-card">
+        <div class="article-icon">{{ recipe.icon }}</div>
+        <div>
+          <div class="article-title">{{ recipe.name }}</div>
+          <div class="article-desc">热量: {{ recipe.calories }}卡 | {{ recipe.time }}分钟</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">📚 减肥知识</div>
+      <div v-for="article in articles" :key="article.title" class="article-card">
+        <div class="article-icon">{{ article.icon }}</div>
+        <div>
+          <div class="article-title">{{ article.title }}</div>
+          <div class="article-desc">{{ article.desc }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">💧 每日饮水提醒</div>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; padding: 10px 0;">
+        <div v-for="i in 8" :key="i" @click="toggleWater(i)"
+             style="width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:20px;"
+             :style="{ background: waterCount >= i ? '#7CE0D3' : '#f0f0f0' }">
+          💧
+        </div>
+      </div>
+      <div style="font-size:13px; color: var(--text-light); margin-top:8px;">
+        已喝 {{ waterCount }}/8 杯 ({{ waterCount * 250 }}ml)
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 我的页面 ===== -->
+  <div v-if="currentTab === 'profile'">
+    <div class="profile-header">
+      <div class="profile-avatar">👩</div>
+      <div class="profile-name">{{ user.name }}</div>
+      <div class="profile-level">{{ levelTitle }} · Lv.{{ level }}</div>
+    </div>
+
+    <div class="profile-stats">
+      <div class="profile-stat">
+        <div class="profile-stat-value">{{ diamonds }}</div>
+        <div class="profile-stat-label">💎 钻石</div>
+      </div>
+      <div class="profile-stat">
+        <div class="profile-stat-value">{{ streak }}</div>
+        <div class="profile-stat-label">🔥 打卡</div>
+      </div>
+      <div class="profile-stat">
+        <div class="profile-stat-value">{{ weights.length }}</div>
+        <div class="profile-stat-label">📊 记录</div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">🏅 成就徽章 ({{ unlockedBadges }}/{{ badges.length }})</div>
+      <div class="badge-grid">
+        <div v-for="badge in badges" :key="badge.id" class="badge-item" :class="{ locked: !badge.unlocked }">
+          <div class="badge-icon">{{ badge.icon }}</div>
+          <div class="badge-name">{{ badge.name }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">📊 身体数据</div>
+      <div class="menu-item">
+        <div class="menu-left">📏 身高</div>
+        <div>{{ user.height }} cm</div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-left">⚖️ 起始体重</div>
+        <div>{{ user.startWeight }} kg</div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-left">🎯 目标体重</div>
+        <div>{{ user.targetWeight }} kg</div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-left">📉 BMI</div>
+        <div>{{ bmi }} ({{ bmiStatus }})</div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">⚙️ 设置</div>
+      <div class="menu-item" @click="showEditProfile = true">
+        <div class="menu-left">👤 编辑资料</div>
+        <div class="menu-arrow">›</div>
+      </div>
+      <div class="menu-item" @click="exportData">
+        <div class="menu-left">💾 数据备份</div>
+        <div class="menu-arrow">›</div>
+      </div>
+      <div class="menu-item" @click="clearAllData">
+        <div class="menu-left">🗑️ 清除数据</div>
+        <div class="menu-arrow">›</div>
+      </div>
+      <div class="menu-item">
+        <div class="menu-left">ℹ️ 关于</div>
+        <div style="color: var(--text-light);">v1.0.0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 食物选择弹窗 ===== -->
+  <div class="popup-overlay" v-if="showMealPopup" @click.self="showMealPopup = false">
+    <div class="popup-content">
+      <div class="popup-title">{{ mealNames[currentMeal] }} - 添加食物</div>
+      <input class="input-field" v-model="foodSearch" placeholder="🔍 搜索食物..." style="margin-bottom: 16px;">
+      <div v-for="food in filteredFoods" :key="food.name" class="food-item" @click="addFood(food)">
+        <div class="food-name">{{ food.name }}</div>
+        <div class="food-cal">{{ food.calories }} 卡</div>
+      </div>
+      <div style="margin-top: 16px;">
+        <div style="font-size: 13px; color: var(--text-light); margin-bottom: 8px;">自定义食物</div>
+        <div style="display: flex; gap: 8px;">
+          <input class="input-field" v-model="customFoodName" placeholder="食物名称" style="flex:2;">
+          <input class="input-field" v-model.number="customFoodCal" placeholder="热量" type="number" style="flex:1;">
+          <button class="btn-record" style="width: auto; padding: 12px 16px; margin: 0;" @click="addCustomFood">添加</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 编辑资料弹窗 ===== -->
+  <div class="popup-overlay" v-if="showEditProfile" @click.self="showEditProfile = false">
+    <div class="popup-content">
+      <div class="popup-title">✏️ 编辑资料</div>
+      <div style="margin-bottom: 12px;">
+        <div style="font-size: 13px; color: var(--text-light); margin-bottom: 6px;">昵称</div>
+        <input class="input-field" v-model="editForm.name">
+      </div>
+      <div style="margin-bottom: 12px;">
+        <div style="font-size: 13px; color: var(--text-light); margin-bottom: 6px;">身高(cm)</div>
+        <input class="input-field" v-model.number="editForm.height" type="number">
+      </div>
+      <div style="margin-bottom: 12px;">
+        <div style="font-size: 13px; color: var(--text-light); margin-bottom: 6px;">目标体重(kg)</div>
+        <input class="input-field" v-model.number="editForm.targetWeight" type="number" step="0.1">
+      </div>
+      <div style="margin-bottom: 12px;">
+        <div style="font-size: 13px; color: var(--text-light); margin-bottom: 6px;">每日热量预算(卡)</div>
+        <input class="input-field" v-model.number="editForm.dailyBudget" type="number">
+      </div>
+      <button class="btn-record" @click="saveProfile">保存</button>
+    </div>
+  </div>
+
+  <!-- ===== 打卡成功弹窗 ===== -->
+  <div class="checkin-success" v-if="showCheckinSuccess" @click="showCheckinSuccess = false">
+    <div class="checkin-card">
+      <div class="checkin-icon">🎉</div>
+      <div class="checkin-title">{{ checkinMessage.title }}</div>
+      <div class="checkin-desc">{{ checkinMessage.desc }}</div>
+      <div class="checkin-diamond">{{ checkinMessage.reward }}</div>
+    </div>
+  </div>
+
+  <!-- ===== 底部导航 ===== -->
+  <div class="bottom-nav">
+    <button class="nav-item" :class="{ active: currentTab === 'home' }" @click="currentTab = 'home'">
+      <div class="nav-icon">🏠</div>
+      <div class="nav-label">首页</div>
+    </button>
+    <button class="nav-item" :class="{ active: currentTab === 'record' }" @click="currentTab = 'record'">
+      <div class="nav-icon">📝</div>
+      <div class="nav-label">记录</div>
+    </button>
+    <button class="nav-item" :class="{ active: currentTab === 'discover' }" @click="currentTab = 'discover'">
+      <div class="nav-icon">🔍</div>
+      <div class="nav-label">发现</div>
+    </button>
+    <button class="nav-item" :class="{ active: currentTab === 'profile' }" @click="currentTab = 'profile'">
+      <div class="nav-icon">👤</div>
+      <div class="nav-label">我的</div>
+    </button>
+  </div>
+</div>
+
+<script>
+const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
+
+createApp({
+  setup() {
+    // ===== 状态 =====
+    const currentTab = ref('home');
+    const recordTab = ref('weight');
+
+    // 用户数据
+    const user = ref(JSON.parse(localStorage.getItem('diet_user') || JSON.stringify({
+      name: '小仙女',
+      height: 165,
+      startWeight: 65,
+      targetWeight: 50,
+      currentWeight: 65
+    })));
+
+    // 核心数据
+    const weights = ref(JSON.parse(localStorage.getItem('diet_weights') || '[]'));
+    const foods = ref(JSON.parse(localStorage.getItem('diet_foods') || '[]'));
+    const exercises = ref(JSON.parse(localStorage.getItem('diet_exercises') || '[]'));
+    const diamonds = ref(parseInt(localStorage.getItem('diet_diamonds') || '0'));
+    const streak = ref(parseInt(localStorage.getItem('diet_streak') || '0'));
+    const lastCheckIn = ref(localStorage.getItem('diet_lastCheckin') || '');
+    const waterCount = ref(parseInt(localStorage.getItem('diet_water_' + today()) || '0'));
+    const dailyBudget = ref(parseInt(localStorage.getItem('diet_budget') || '1500'));
+
+    // UI状态
+    const weightInput = ref(user.value.currentWeight);
+    const showMealPopup = ref(false);
+    const showEditProfile = ref(false);
+    const showCheckinSuccess = ref(false);
+    const checkinMessage = ref({ title: '', desc: '', reward: '' });
+    const currentMeal = ref('breakfast');
+    const foodSearch = ref('');
+    const customFoodName = ref('');
+    const customFoodCal = ref('');
+    const selectedExercise = ref('');
+    const exerciseDuration = ref(30);
+    const editForm = ref({ ...user.value, dailyBudget: dailyBudget.value });
+
+    // ===== 常量 =====
+    const tips = [
+      '多喝水能加速新陈代谢10%哦！💧',
+      '少食多餐比节食更有效～',
+      '每天快走30分钟，一个月能瘦3斤！',
+      '睡眠不足会导致体重增加，早点休息吧～',
+      '蛋白质能增加饱腹感，减少零食欲望！',
+      '饭前喝一杯水，能减少20%的进食量！',
+      '细嚼慢咽有助于减少进食量～',
+      '坚持就是胜利，你已经很棒了！💪'
+    ];
+
+    const mealNames = { breakfast: '🌅 早餐', lunch: '☀️ 午餐', dinner: '🌙 晚餐', snack: '🍰 加餐' };
+
+    const foodDatabase = [
+      { name: '白米饭(1碗)', calories: 230 },
+      { name: '馒头(1个)', calories: 220 },
+      { name: '面条(1碗)', calories: 280 },
+      { name: '全麦面包(2片)', calories: 140 },
+      { name: '鸡蛋(1个)', calories: 80 },
+      { name: '牛奶(250ml)', calories: 150 },
+      { name: '酸奶(200ml)', calories: 130 },
+      { name: '鸡胸肉(100g)', calories: 120 },
+      { name: '牛肉(100g)', calories: 190 },
+      { name: '三文鱼(100g)', calories: 140 },
+      { name: '豆腐(100g)', calories: 80 },
+      { name: '西蓝花(100g)', calories: 35 },
+      { name: '番茄(1个)', calories: 20 },
+      { name: '黄瓜(1根)', calories: 15 },
+      { name: '苹果(1个)', calories: 52 },
+      { name: '香蕉(1根)', calories: 90 },
+      { name: '橙子(1个)', calories: 47 },
+      { name: '葡萄(100g)', calories: 45 },
+      { name: '红薯(100g)', calories: 100 },
+      { name: '玉米(1根)', calories: 110 },
+      { name: '花生(30g)', calories: 170 },
+      { name: '核桃(3个)', calories: 120 },
+      { name: '薯片(小包)', calories: 280 },
+      { name: '可乐(330ml)', calories: 140 },
+      { name: '奶茶(1杯)', calories: 400 },
+      { name: '蛋糕(1块)', calories: 350 },
+      { name: '饼干(5块)', calories: 200 },
+      { name: '巧克力(30g)', calories: 160 },
+      { name: '沙拉(1份)', calories: 150 },
+      { name: '水果拼盘', calories: 120 }
+    ];
+
+    const exerciseTypes = [
+      { name: '跑步', icon: '🏃', calPerMin: 10 },
+      { name: '快走', icon: '🚶', calPerMin: 6 },
+      { name: '游泳', icon: '🏊', calPerMin: 12 },
+      { name: '骑行', icon: '🚴', calPerMin: 8 },
+      { name: '跳绳', icon: '⏭️', calPerMin: 11 },
+      { name: '瑜伽', icon: '🧘', calPerMin: 4 },
+      { name: '跳舞', icon: '💃', calPerMin: 7 },
+      { name: '力量', icon: '💪', calPerMin: 8 }
+    ];
+
+    const recipes = [
+      { name: '鸡胸肉沙拉', icon: '🥗', calories: 280, time: 15 },
+      { name: '燕麦粥配水果', icon: '🥣', calories: 200, time: 10 },
+      { name: '清蒸鱼配蔬菜', icon: '🐟', calories: 250, time: 20 },
+      { name: '全麦三明治', icon: '🥪', calories: 300, time: 10 },
+      { name: '紫薯酸奶碗', icon: '🍠', calories: 180, time: 10 },
+      { name: '蔬菜鸡蛋卷', icon: '🥚', calories: 220, time: 15 }
+    ];
+
+    const articles = [
+      { title: '科学减肥的5个核心原则', icon: '📖', desc: '告别盲目节食，拥抱健康瘦身' },
+      { title: '基础代谢率是什么？', icon: '🔬', desc: '了解你的身体每天消耗多少热量' },
+      { title: '为什么减肥会遇到平台期？', icon: '📉', desc: '突破停滞期的3个方法' },
+      { title: '运动前后怎么吃？', icon: '🍽️', desc: '让运动效果翻倍的饮食技巧' },
+      { title: '睡眠与减肥的关系', icon: '😴', desc: '睡不好真的会胖！' }
+    ];
+
+    const levelTitles = ['🐣 萌芽期', '🌱 发芽期', '🌿 成长期', '🌳 成熟期', '🌲 稳定期', '🎋 精通期', '🌴 大师期', '👑 女神期', '💎 传奇期', '⭐ 神话期'];
+
+    // ===== 工具函数 =====
+    function today() {
+      return new Date().toISOString().split('T')[0];
+    }
+
+    function saveAll() {
+      localStorage.setItem('diet_user', JSON.stringify(user.value));
+      localStorage.setItem('diet_weights', JSON.stringify(weights.value));
+      localStorage.setItem('diet_foods', JSON.stringify(foods.value));
+      localStorage.setItem('diet_exercises', JSON.stringify(exercises.value));
+      localStorage.setItem('diet_diamonds', diamonds.value.toString());
+      localStorage.setItem('diet_streak', streak.value.toString());
+      localStorage.setItem('diet_lastCheckin', lastCheckIn.value);
+      localStorage.setItem('diet_budget', dailyBudget.value.toString());
+      localStorage.setItem('diet_water_' + today(), waterCount.value.toString());
+    }
+
+    function doCheckIn(type, reward) {
+      const t = today();
+      if (lastCheckIn.value !== t) {
+        streak.value++;
+        lastCheckIn.value = t;
+      }
+      diamonds.value += reward;
+      saveAll();
+
+      const messages = [
+        { title: '太棒了！🎉', desc: '今天也是自律的一天！', reward: `+${reward}💎` },
+        { title: '坚持就是胜利！✨', desc: '距离女神又近了一步！', reward: `+${reward}💎` },
+        { title: '你真棒！💪', desc: '明天的你会感谢今天的自己！', reward: `+${reward}💎` },
+      ];
+      checkinMessage.value = messages[Math.floor(Math.random() * messages.length)];
+      showCheckinSuccess.value = true;
+      setTimeout(() => { showCheckinSuccess.value = false; }, 2500);
+    }
+
+    // ===== 计算属性 =====
+    const bmi = computed(() => {
+      const h = user.value.height / 100;
+      return (user.value.currentWeight / (h * h)).toFixed(1);
+    });
+
+    const bmiStatus = computed(() => {
+      const v = parseFloat(bmi.value);
+      if (v < 18.5) return '偏瘦';
+      if (v < 24) return '正常';
+      if (v < 28) return '超重';
+      return '肥胖';
+    });
+
+    const weightLoss = computed(() => {
+      return (user.value.startWeight - user.value.currentWeight).toFixed(1);
+    });
+
+    const progress = computed(() => {
+      const total = user.value.startWeight - user.value.targetWeight;
+      if (total <= 0) return 0;
+      const lost = user.value.startWeight - user.value.currentWeight;
+      return Math.min(100, Math.max(0, Math.round((lost / total) * 100)));
+    });
+
+    const todayWeight = computed(() => {
+      const w = weights.value.find(w => w.date === today());
+      return w ? w.weight : null;
+    });
+
+    const lastWeight = computed(() => {
+      return weights.value.length > 0 ? weights.value[weights.value.length - 1].weight : null;
+    });
+
+    const weightDiff = computed(() => {
+      if (!lastWeight.value) return 0;
+      return parseFloat(weightInput.value) - lastWeight.value;
+    });
+
+    const recentWeights = computed(() => {
+      return [...weights.value].reverse().slice(0, 10);
+    });
+
+    const todayFoods = computed(() => {
+      return foods.value.filter(f => f.date === today());
+    });
+
+    const todayCalories = computed(() => {
+      return todayFoods.value.reduce((sum, f) => sum + f.calories, 0);
+    });
+
+    const todayExercises = computed(() => {
+      return exercises.value.filter(e => e.date === today());
+    });
+
+    const todayExerciseCal = computed(() => {
+      return todayExercises.value.reduce((sum, e) => sum + e.calories, 0);
+    });
+
+    const currentTip = computed(() => {
+      return tips[Math.floor(Math.random() * tips.length)];
+    });
+
+    const estimatedCalories = computed(() => {
+      const ex = exerciseTypes.find(e => e.name === selectedExercise.value);
+      return ex ? ex.calPerMin * exerciseDuration.value : 0;
+    });
+
+    const filteredFoods = computed(() => {
+      if (!foodSearch.value) return foodDatabase;
+      return foodDatabase.filter(f => f.name.includes(foodSearch.value));
+    });
+
+    const level = computed(() => {
+      const exp = diamonds.value;
+      if (exp >= 5500) return 10;
+      if (exp >= 4000) return 9;
+      if (exp >= 3000) return 8;
+      if (exp >= 2200) return 7;
+      if (exp >= 1500) return 6;
+      if (exp >= 1000) return 5;
+      if (exp >= 600) return 4;
+      if (exp >= 300) return 3;
+      if (exp >= 100) return 2;
+      return 1;
+    });
+
+    const levelTitle = computed(() => {
+      return levelTitles[level.value - 1];
+    });
+
+    const badges = computed(() => [
+      { id: 1, icon: '🔥', name: '周周坚持', unlocked: streak.value >= 7 },
+      { id: 2, icon: '🌟', name: '月度之星', unlocked: streak.value >= 30 },
+      { id: 3, icon: '👑', name: '百日传奇', unlocked: streak.value >= 100 },
+      { id: 4, icon: '🏅', name: '减重先锋', unlocked: parseFloat(weightLoss.value) >= 10 },
+      { id: 5, icon: '🥇', name: '目标达成', unlocked: user.value.currentWeight <= user.value.targetWeight },
+      { id: 6, icon: '💃', name: '蜕变女神', unlocked: parseFloat(weightLoss.value) >= 5 },
+      { id: 7, icon: '🚶', name: '步行者', unlocked: exercises.value.length >= 10 },
+      { id: 8, icon: '🥬', name: '清淡达人', unlocked: false },
+      { id: 9, icon: '🦋', name: '蝴蝶蜕变', unlocked: false }
+    ]);
+
+    const unlockedBadges = computed(() => {
+      return badges.value.filter(b => b.unlocked).length;
+    });
+
+    // ===== 方法 =====
+    function recordWeight() {
+      const w = parseFloat(weightInput.value);
+      if (isNaN(w) || w < 20 || w > 200) return;
+
+      const t = today();
+      const idx = weights.value.findIndex(item => item.date === t);
+      if (idx >= 0) {
+        weights.value[idx].weight = w;
+      } else {
+        weights.value.push({ date: t, weight: w });
+      }
+      user.value.currentWeight = w;
+      doCheckIn('weight', 2);
+      nextTick(() => renderChart());
+    }
+
+    function getMealCal(meal) {
+      return todayFoods.value.filter(f => f.meal === meal).reduce((s, f) => s + f.calories, 0);
+    }
+
+    function openMealPopup(meal) {
+      currentMeal.value = meal;
+      foodSearch.value = '';
+      showMealPopup.value = true;
+    }
+
+    function addFood(food) {
+      foods.value.push({
+        id: Date.now(),
+        date: today(),
+        meal: currentMeal.value,
+        name: food.name,
+        calories: food.calories
+      });
+      doCheckIn('diet', 3);
+      showMealPopup.value = false;
+    }
+
+    function addCustomFood() {
+      if (!customFoodName.value || !customFoodCal.value) return;
+      foods.value.push({
+        id: Date.now(),
+        date: today(),
+        meal: currentMeal.value,
+        name: customFoodName.value,
+        calories: parseInt(customFoodCal.value)
+      });
+      customFoodName.value = '';
+      customFoodCal.value = '';
+      doCheckIn('diet', 3);
+      showMealPopup.value = false;
+    }
+
+    function recordExercise() {
+      if (!selectedExercise.value) return;
+      exercises.value.push({
+        id: Date.now(),
+        date: today(),
+        type: selectedExercise.value,
+        duration: exerciseDuration.value,
+        calories: estimatedCalories.value
+      });
+      doCheckIn('exercise', 3);
+      selectedExercise.value = '';
+      exerciseDuration.value = 30;
+    }
+
+    function toggleWater(i) {
+      waterCount.value = waterCount.value >= i ? i - 1 : i;
+      saveAll();
+    }
+
+    function formatDate(dateStr) {
+      const d = new Date(dateStr);
+      return `${d.getMonth() + 1}月${d.getDate()}日`;
+    }
+
+    function getChangeColor(w, i) {
+      const arr = recentWeights.value;
+      if (i >= arr.length - 1) return '#999';
+      const prev = arr[i + 1];
+      const diff = w.weight - prev.weight;
+      return diff < 0 ? '#4CD964' : diff > 0 ? '#FF3B30' : '#999';
+    }
+
+    function getChangeText(w, i) {
+      const arr = recentWeights.value;
+      if (i >= arr.length - 1) return '首次记录';
+      const prev = arr[i + 1];
+      const diff = (w.weight - prev.weight).toFixed(1);
+      return diff > 0 ? `+${diff}kg` : `${diff}kg`;
+    }
+
+    function saveProfile() {
+      user.value.name = editForm.value.name;
+      user.value.height = editForm.value.height;
+      user.value.targetWeight = editForm.value.targetWeight;
+      dailyBudget.value = editForm.value.dailyBudget;
+      saveAll();
+      showEditProfile.value = false;
+    }
+
+    function exportData() {
+      const data = {
+        user: user.value,
+        weights: weights.value,
+        foods: foods.value,
+        exercises: exercises.value,
+        diamonds: diamonds.value,
+        streak: streak.value
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `轻盈计划_备份_${today()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function clearAllData() {
+      if (confirm('确定要清除所有数据吗？此操作不可恢复！')) {
+        localStorage.clear();
+        location.reload();
+      }
+    }
+
+    // ===== 图表 =====
+    function renderChart() {
+      const el = document.querySelector('.chart-container');
+      if (!el || weights.value.length === 0) return;
+
+      const chart = echarts.init(el);
+      const recent = weights.value.slice(-7);
+
+      chart.setOption({
+        grid: { top: 20, right: 20, bottom: 30, left: 50 },
+        xAxis: {
+          type: 'category',
+          data: recent.map(w => {
+            const d = new Date(w.date);
+            return `${d.getMonth()+1}/${d.getDate()}`;
+          }),
+          axisLine: { lineStyle: { color: '#eee' } },
+          axisLabel: { color: '#999', fontSize: 11 }
+        },
+        yAxis: {
+          type: 'value',
+          min: function(v) { return Math.floor(v.min - 1); },
+          max: function(v) { return Math.ceil(v.max + 1); },
+          axisLine: { show: false },
+          axisLabel: { color: '#999', fontSize: 11 },
+          splitLine: { lineStyle: { color: '#f5f5f5' } }
+        },
+        series: [{
+          data: recent.map(w => w.weight),
+          type: 'line',
+          smooth: true,
+          symbol: 'circle',
+          symbolSize: 8,
+          lineStyle: { color: '#FF6B9D', width: 3 },
+          itemStyle: { color: '#FF6B9D' },
+          areaStyle: {
+            color: {
+              type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+              colorStops: [
+                { offset: 0, color: 'rgba(255,107,157,0.3)' },
+                { offset: 1, color: 'rgba(255,107,157,0)' }
+              ]
+            }
+          }
+        }]
+      });
+    }
+
+    // ===== 生命周期 =====
+    onMounted(() => {
+      // 自动检查连续打卡
+      const t = today();
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+      if (lastCheckIn.value && lastCheckIn.value !== t && lastCheckIn.value !== yesterdayStr) {
+        // 断签了
+        streak.value = 0;
+        saveAll();
+      }
+
+      nextTick(() => renderChart());
+    });
+
+    watch(currentTab, (newTab) => {
+      if (newTab === 'home') {
+        nextTick(() => renderChart());
+      }
+    });
+
+    return {
+      // 状态
+      currentTab, recordTab, user, weights, foods, exercises,
+      diamonds, streak, waterCount, dailyBudget,
+      weightInput, showMealPopup, showEditProfile, showCheckinSuccess,
+      checkinMessage, currentMeal, foodSearch, customFoodName, customFoodCal,
+      selectedExercise, exerciseDuration, editForm,
+      // 常量
+      mealNames, exerciseTypes, recipes, articles,
+      // 计算
+      bmi, bmiStatus, weightLoss, progress, todayWeight, lastWeight,
+      weightDiff, recentWeights, todayFoods, todayCalories,
+      todayExercises, todayExerciseCal, currentTip, estimatedCalories,
+      filteredFoods, level, levelTitle, badges, unlockedBadges,
+      // 方法
+      recordWeight, getMealCal, openMealPopup, addFood, addCustomFood,
+      recordExercise, toggleWater, formatDate, getChangeColor, getChangeText,
+      saveProfile, exportData, clearAllData
+    };
+  }
+}).mount('#app');
+</script>
+</body>
+</html>
